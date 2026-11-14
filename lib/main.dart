@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
 }
 
 /// Экран витрины (Storybook) для отображения всех компонентов UI-кита.
-/// 
+///
 /// Дата создания: 14-11-2026
 /// Автор создания: [Твой номер]
 class StorybookScreen extends StatelessWidget {
@@ -41,11 +41,11 @@ class StorybookScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Кнопки (Buttons)', 
+                'Кнопки (Buttons)',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              
+
               // 1. Активная кнопка
               AppButton(
                 text: "Let's Combat!",
@@ -66,6 +66,22 @@ class StorybookScreen extends StatelessWidget {
               const AppButton(
                 text: "Loading...",
                 state: AppButtonState.loading,
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Поля ввода (Inputs)',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              // 1. Обычный инпут
+              const AppInput(hintText: 'Full Name'),
+              const SizedBox(height: 24),
+
+              // 2. Инпут с ошибкой
+              const AppInput(
+                hintText: 'Email',
+                errorText: 'Incorrect email format',
               ),
             ],
           ),
