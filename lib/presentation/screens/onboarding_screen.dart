@@ -107,16 +107,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
 
             // Точки и кнопка
+                        // Точки и кнопка
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _onboardingData.length,
-                      (index) => buildDot(index),
-                    ),
+                  // Используем наш новый компонент
+                  AppPagination(
+                    currentIndex: _currentPage,
+                    count: _onboardingData.length,
                   ),
                   const SizedBox(height: 32),
                   if (_currentPage == 2)
@@ -131,19 +130,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget buildDot(int index) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(right: 8),
-      height: 8,
-      width: _currentPage == index ? 24 : 8,
-      decoration: BoxDecoration(
-        color: _currentPage == index ? AppColors.primary : AppColors.inputLine,
-        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

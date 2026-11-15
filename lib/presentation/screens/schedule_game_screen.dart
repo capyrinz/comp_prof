@@ -14,10 +14,13 @@ class ScheduleGameScreen extends StatefulWidget {
 }
 
 class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
-  // Переменные для хранения выбранной даты и времени
+  // Переменные для хранения выбранных значений
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isNotificationEnabled = false;
+  
+  // Переменная для хранения выбранной категории (для нашего Селекта)
+  String? _selectedCategory;
 
   // Метод для вызова системного календаря
   Future<void> _pickDate(BuildContext context) async {
@@ -72,22 +75,38 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.primary),
-        title: Text('Schedule Game', style: AppTextStyles.title3Semibold.copyWith(color: AppColors.primary)),
+        title: Text(
+          'Schedule Game', 
+          style: AppTextStyles.title3Semibold.copyWith(color: AppColors.primary),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. Название игры
             const AppInput(hintText: 'Game Name'),
             const SizedBox(height: 16),
-            // Пока используем инпут для категории, потом заменим на Селект
-            const AppInput(hintText: 'Category'),
+            
+            // 2. Категория (Используем наш новый AppSelect)
+            AppSelect(
+              hintText: 'Category',
+              selectedValue: _selectedCategory,
+              items: const ['Image Puzzle', 'Circle Puzzle', 'Shooter', 'Racing'],
+              onSelected: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
             const SizedBox(height: 16),
+            
+            // 3. Призовой фонд
             const AppInput(hintText: 'Winning Price'),
             const SizedBox(height: 24),
 
-            // Выбор даты и времени (стилизованные под кнопки)
+            // 4. Выбор даты и времени
             Row(
               children: [
                 Expanded(
@@ -104,7 +123,10 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
                         children: [
                           Text('FROM', style: AppTextStyles.caption2Regular),
                           const SizedBox(height: 4),
-                          Text('${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}', style: AppTextStyles.textRegular),
+                          Text(
+                            '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}', 
+                            style: AppTextStyles.textRegular,
+                          ),
                         ],
                       ),
                     ),
@@ -125,7 +147,10 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
                         children: [
                           Text('TIME', style: AppTextStyles.caption2Regular),
                           const SizedBox(height: 4),
-                          Text(_selectedTime.format(context), style: AppTextStyles.textRegular),
+                          Text(
+                            _selectedTime.format(context), 
+                            style: AppTextStyles.textRegular,
+                          ),
                         ],
                       ),
                     ),
@@ -135,13 +160,17 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
             ),
             const SizedBox(height: 24),
 
+            // 5. Описание
             const AppInput(hintText: 'Description'),
             const SizedBox(height: 24),
 
-            // Чекбокс уведомлений
+            // 6. Чекбокс уведомлений
             Row(
               children: [
-                Text('REMINDERS', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
+                Text(
+                  'REMINDERS', 
+                  style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary),
+                ),
                 const Spacer(),
                 AppCheckbox(
                   value: _isNotificationEnabled,
@@ -157,12 +186,12 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
             ),
             const SizedBox(height: 40),
 
-            // Кнопка публикации
+            // 7. Кнопка публикации
             AppButton(
               text: 'Publish',
               onPressed: () {
                 debugPrint("[ScheduleGameScreen]: Игра опубликована. Переход на Success");
-                // Переходим на экран успеха, убирая текущий экран из стека
+                // Переходим на экран успеха
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const SuccessScreen()),

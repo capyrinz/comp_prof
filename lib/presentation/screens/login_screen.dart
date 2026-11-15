@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
 import 'package:network_layer/network_layer.dart';
+
 import '../../data/auth_repository.dart';
 import 'landing_screen.dart';
 
@@ -13,9 +14,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
-  
+
   // Создаем клиент и репозиторий (пока с фейковым URL для теста)
-  final _authRepo = AuthRepository(ApiClient(baseUrl: 'https://fake-api-imech.com'));
+  final _authRepo = AuthRepository(
+    ApiClient(baseUrl: 'https://fake-api-imech.com'),
+  );
 
   void _showErrorNotification(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -41,21 +44,32 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() { _isLoading = true; });
-    try {
-      // Пытаемся сделать запрос (он упадет, так как URL фейковый)
-      await _authRepo.login('test@mail.com', '123456');
-      
-      // Если успех (в будущем):
-      if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingScreen()));
-      }
-    } on NetworkException catch (e) {
-      // Ловим нашу сетевую ошибку и показываем уведомление
-      if (mounted) _showErrorNotification(e.message);
-    } finally {
-      if (mounted) setState(() { _isLoading = false; });
+    setState(() {
+      _isLoading = true;
+    });
+
+    // ВРЕМЕННО ОТКЛЮЧАЕМ СЕТЬ, ЧТОБЫ ПРОТЕСТИРОВАТЬ ЭКРАНЫ
+    // try {
+    //   await _authRepo.login('test@mail.com', '123456');
+    // } on NetworkException catch (e) {
+    //   if (mounted) _showErrorNotification(e.message);
+    // }
+
+    // Имитируем загрузку 1 секунду
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Переходим на главный экран
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LandingScreen()),
+      );
     }
+
+    if (mounted)
+      setState(() {
+        _isLoading = false;
+      });
   }
 
   @override
@@ -69,21 +83,33 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ... (картинка и тексты остаются как были) ...
-              const SizedBox(height: 200, child: Center(child: Text('Картинка'))),
-              Text('Welcome Back!', style: AppTextStyles.title2Semibold.copyWith(color: AppColors.primary)),
+              const SizedBox(
+                height: 200,
+                child: Center(child: Text('Картинка')),
+              ),
+              Text(
+                'Welcome Back!',
+                style: AppTextStyles.title2Semibold.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(height: 32),
-              
+
               const AppInput(hintText: 'Email'),
               const SizedBox(height: 16),
               const AppInput(hintText: 'Password', obscureText: true),
-              
+
               const SizedBox(height: 32),
-              
+
               // Кнопка теперь показывает загрузку, если идет запрос
-              _isLoading 
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : AppButton(text: "Let's Combat!", onPressed: _handleLogin),
-                
+              _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : AppButton(text: "Let's Combat!", onPressed: _handleLogin),
+
               // ... (остальной код с соцсетями) ...
             ],
           ),
