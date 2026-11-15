@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ui_kit/ui_kit.dart'; // Импорт нашей библиотеки
+import 'package:ui_kit/ui_kit.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,19 +19,27 @@ class MyApp extends StatelessWidget {
 }
 
 /// Экран витрины (Storybook) для отображения всех компонентов UI-кита.
-///
-/// Дата создания: 14-11-2026
+/// 
+/// Дата создания: 15-11-2026
 /// Автор создания: [Твой номер]
-class StorybookScreen extends StatelessWidget {
+class StorybookScreen extends StatefulWidget {
   const StorybookScreen({super.key});
+
+  @override
+  State<StorybookScreen> createState() => _StorybookScreenState();
+}
+
+class _StorybookScreenState extends State<StorybookScreen> {
+  // Состояние для нашего чекбокса
+  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white, // Используем цвет из библиотеки
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: const Text('Storybook (UI Kit)'),
-        backgroundColor: AppColors.primary, // Розовый цвет
+        backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
       body: Padding(
@@ -40,48 +48,49 @@ class StorybookScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Кнопки (Buttons)',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              const Text('Кнопки (Buttons)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-
-              // 1. Активная кнопка
               AppButton(
                 text: "Let's Combat!",
-                onPressed: () {
-                  print("Кнопка нажата!");
-                },
+                onPressed: () {},
               ),
               const SizedBox(height: 16),
-
-              // 2. Неактивная кнопка
-              const AppButton(
-                text: "Disabled Button",
-                state: AppButtonState.disabled,
-              ),
+              
+              const Text('Поля ввода (Inputs)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-
-              // 3. Кнопка загрузки
-              const AppButton(
-                text: "Loading...",
-                state: AppButtonState.loading,
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Поля ввода (Inputs)',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-
-              // 1. Обычный инпут
               const AppInput(hintText: 'Full Name'),
               const SizedBox(height: 24),
+              const AppInput(hintText: 'Email', errorText: 'Incorrect email format'),
+              
+              const SizedBox(height: 32),
+              const Text('Другие компоненты (Other)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              
+              // Таймер
+              const AppTimer(time: "00:00"),
+              const SizedBox(height: 24),
 
-              // 2. Инпут с ошибкой
-              const AppInput(
-                hintText: 'Email',
-                errorText: 'Incorrect email format',
+              // Карточка
+              const AppCard(
+                title: "Schedule",
+                description: "Easily schedule event/games then find like minded players for battle.",
+              ),
+              const SizedBox(height: 24),
+
+              // Чекбокс (с логикой)
+              Row(
+                children: [
+                  AppCheckbox(
+                    value: isChecked,
+                    onChanged: (val) {
+                      setState(() {
+                        isChecked = val ?? false;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('I agree to the terms and conditions'),
+                ],
               ),
             ],
           ),
