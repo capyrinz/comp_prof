@@ -43,7 +43,7 @@ class NotificationService {
     if (scheduledTime.isBefore(DateTime.now())) return;
 
     await _notificationsPlugin.zonedSchedule(
-      id,
+      id, 
       'Скоро игра!',
       'Ваша игра "$gameName" начнется через 1 час. Приготовьтесь к бою!',
       tz.TZDateTime.from(scheduledTime, tz.getLocation('Europe/Moscow')),

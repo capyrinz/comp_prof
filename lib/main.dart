@@ -3,10 +3,22 @@ import 'data/session_manager.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/landing_screen.dart';
 import 'data/notification_service.dart';
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Обязательно
+  
   await NotificationService.initialize();   // Инициализация уведомлений
+  
+  // Инициализация Яндекс.Метрики  // Инициализация Яндекс.Метрики
+  try {
+    await AppMetrica.activate(const AppMetricaConfig("test_key_12345")); // Пока используем тестовый ключ
+    debugPrint("AppMetrica: Активация прошла успешно");
+  } catch (e) {
+    // Если ключ неверный, мы просто перехватываем ошибку и идём дальше
+    debugPrint("AppMetrica: Ошибка активации (тестовый режим) -> $e");
+  }
+
   runApp(const MyApp());
 }
 
