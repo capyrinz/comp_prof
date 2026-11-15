@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
+
 import 'success_screen.dart'; // Импортируем экран успеха
+import '../../data/notification_service.dart';
 
 /// Экран создания игры (Schedule Game).
-/// 
+///
 /// Дата создания: 15-11-2026
 /// Автор создания: [Твой номер]
 class ScheduleGameScreen extends StatefulWidget {
@@ -18,7 +20,8 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isNotificationEnabled = false;
-  
+  final TextEditingController _gameNameController = TextEditingController();
+
   // Переменная для хранения выбранной категории (для нашего Селекта)
   String? _selectedCategory;
 
@@ -76,8 +79,10 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.primary),
         title: Text(
-          'Schedule Game', 
-          style: AppTextStyles.title3Semibold.copyWith(color: AppColors.primary),
+          'Schedule Game',
+          style: AppTextStyles.title3Semibold.copyWith(
+            color: AppColors.primary,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -86,14 +91,22 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Название игры
-            const AppInput(hintText: 'Game Name'),
+            AppInput(
+              hintText: 'Game Name',
+              controller: _gameNameController, // Привязываем контроллер
+            ),
             const SizedBox(height: 16),
-            
+
             // 2. Категория (Используем наш новый AppSelect)
             AppSelect(
               hintText: 'Category',
               selectedValue: _selectedCategory,
-              items: const ['Image Puzzle', 'Circle Puzzle', 'Shooter', 'Racing'],
+              items: const [
+                'Image Puzzle',
+                'Circle Puzzle',
+                'Shooter',
+                'Racing',
+              ],
               onSelected: (value) {
                 setState(() {
                   _selectedCategory = value;
@@ -101,7 +114,7 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // 3. Призовой фонд
             const AppInput(hintText: 'Winning Price'),
             const SizedBox(height: 24),
@@ -124,7 +137,7 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
                           Text('FROM', style: AppTextStyles.caption2Regular),
                           const SizedBox(height: 4),
                           Text(
-                            '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}', 
+                            '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
                             style: AppTextStyles.textRegular,
                           ),
                         ],
@@ -148,7 +161,7 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
                           Text('TIME', style: AppTextStyles.caption2Regular),
                           const SizedBox(height: 4),
                           Text(
-                            _selectedTime.format(context), 
+                            _selectedTime.format(context),
                             style: AppTextStyles.textRegular,
                           ),
                         ],
@@ -168,8 +181,10 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
             Row(
               children: [
                 Text(
-                  'REMINDERS', 
-                  style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary),
+                  'REMINDERS',
+                  style: AppTextStyles.captionSemibold.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
                 const Spacer(),
                 AppCheckbox(
@@ -187,15 +202,39 @@ class _ScheduleGameScreenState extends State<ScheduleGameScreen> {
             const SizedBox(height: 40),
 
             // 7. Кнопка публикации
+            // 7. Кнопка публикации
             AppButton(
               text: 'Publish',
-              onPressed: () {
-                debugPrint("[ScheduleGameScreen]: Игра опубликована. Переход на Success");
-                // Переходим на экран успеха
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SuccessScreen()),
-                );
+              onPressed: () async {
+                // 1. Если галочка уведомлений стоит, планируем уведомление
+                if (_isNotificationEnabled) {
+                  final gameDateTime = DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month,
+                    _selectedDate.day,
+                    _selectedTime.hour,
+                    _selectedTime.minute,
+                  );
+
+                  await NotificationService.scheduleGameNotification(
+                    id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+                    gameName: _gameNameController.text.isEmpty
+                        ? 'Combat'
+                        : _gameNameController.text,
+                    gameDateTime: gameDateTime,
+                  );
+                  debugPrint("[ScheduleGameScreen]: Уведомление запланировано");
+                }
+
+                // 2. Переходим на экран успеха
+                if (mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SuccessScreen(),
+                    ),
+                  );
+                }
               },
             ),
           ],

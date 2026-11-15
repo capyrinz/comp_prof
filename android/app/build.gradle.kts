@@ -10,6 +10,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Включаем поддержку десугаринга
+        isCoreLibraryDesugaringEnabled = true
+        // Устанавливаем Java 17
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -19,7 +22,7 @@ android {
         applicationId = "com.example.prof2"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
@@ -46,4 +49,11 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // ... возможно, здесь уже есть другие зависимости ...
+    
+    // Добавляем библиотеку для десугаринга
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

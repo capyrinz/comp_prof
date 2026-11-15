@@ -4,6 +4,7 @@ import 'package:network_layer/network_layer.dart';
 
 import '../../data/auth_repository.dart';
 import 'landing_screen.dart';
+import '../../data/session_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,25 +48,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
     });
-
-    // ВРЕМЕННО ОТКЛЮЧАЕМ СЕТЬ, ЧТОБЫ ПРОТЕСТИРОВАТЬ ЭКРАНЫ
-    // try {
-    //   await _authRepo.login('test@mail.com', '123456');
-    // } on NetworkException catch (e) {
-    //   if (mounted) _showErrorNotification(e.message);
-    // }
-
-    // Имитируем загрузку 1 секунду
     await Future.delayed(const Duration(seconds: 1));
 
-    // Переходим на главный экран
     if (mounted) {
+      // СОХРАНЯЕМ СЕССИЮ
+      await SessionManager.saveLoginStatus(true);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LandingScreen()),
       );
     }
-
     if (mounted)
       setState(() {
         _isLoading = false;

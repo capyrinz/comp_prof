@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-
+import '../../data/session_manager.dart';
+import 'onboarding_screen.dart';
+import 'splash_screen.dart';
 /// Виджет бокового меню (Side Menu), который открывается свайпом или по клику на гамбургер.
 /// 
 /// Дата создания: 15-11-2026
@@ -75,13 +77,19 @@ class SideMenu extends StatelessWidget {
             ),
 
             // Кнопка выхода
-            ListTile(
+                        ListTile(
               leading: const Icon(Icons.logout, color: AppColors.error),
               title: Text('Logout', style: AppTextStyles.textRegular.copyWith(color: AppColors.error)),
-              onTap: () {
-                // TODO: Логика выхода
-                debugPrint("[SideMenu]: Нажата кнопка Logout");
-                Navigator.pushReplacementNamed(context, '/');
+              onTap: () async {
+                // Очищаем сессию
+                await SessionManager.logout();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SplashScreen()),
+                    (route) => false,
+                  );
+                }
               },
             ),
             const SizedBox(height: 20),
