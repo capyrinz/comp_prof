@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 import 'game_image_screen.dart';
+import 'game_circle_screen.dart';
 
 /// Экран с подробной информацией о выбранном бое (Combat Information).
 ///
@@ -156,14 +157,23 @@ class CombatInformationScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Кнопка присоединиться
-            AppButton(
+                        AppButton(
               text: 'Join Combat!',
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const GameImageScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const GameImageScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 16), // Отступ
+            // ВРЕМЕННАЯ КНОПКА ДЛЯ ТЕСТА ИГРЫ CIRCLE
+            AppButton(
+              text: 'Играть в Circle (Тест)',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GameCircleScreen()),
                 );
               },
             ),
