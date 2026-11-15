@@ -2,9 +2,13 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'success_screen.dart';
+import 'package:network_layer/network_layer.dart';
+import 'game_end_screen.dart';
 
 /// Экран игры Image (Пазл/Пятнашки).
+/// 
+/// Дата создания: 15-11-2026
+/// Автор создания: [Твой номер]
 class GameImageScreen extends StatefulWidget {
   const GameImageScreen({super.key});
 
@@ -12,7 +16,7 @@ class GameImageScreen extends StatefulWidget {
   State<GameImageScreen> createState() => _GameImageScreenState();
 }
 
-class _GameImageScreenState extends State<GameImageScreen> {
+class _GameImageScreenState extends State<GameImageScreen> with WidgetsBindingObserver {
   List<int> _pieces = [1, 2, 3, 4, 5, 6, 7, 8, 0]; 
   int _seconds = 0;
   Timer? _timer;
@@ -21,13 +25,47 @@ class _GameImageScreenState extends State<GameImageScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    AppLogger.info('GameImageScreen', 'Жизненный цикл', 'Игра Image запущена (initState)');
     _shufflePuzzle();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    AppLogger.info('GameImageScreen', 'Жизненный цикл', 'Игра Image закрыта (dispose)');
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Если игрок свернул приложение и игра идет
+    if (state == AppLifecycleState.paused && _isPlaying) {
+      AppLogger.error('GameImageScreen', 'Проигрыш', 'Игрок свернул приложение во время игры');
+      _timer?.cancel();
+      _isPlaying = false;
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Вы проиграли!'),
+            content: const Text('Нельзя сворачивать приложение во время боя.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Закрываем диалог
+                  Navigator.pop(context); // Выходим из игры назад
+                },
+                child: const Text('Выйти'),
+              )
+            ],
+          ),
+        );
+      }
+    }
   }
 
   void _shufflePuzzle() {
@@ -81,14 +119,10 @@ class _GameImageScreenState extends State<GameImageScreen> {
 
     int emptyIndex = _pieces.indexOf(0);
     
-    // Проверяем, можно ли передвинуть ячейку
     bool isAdjacent = (index == emptyIndex - 1 && index % 3 != 2) || 
                       (index == emptyIndex + 1 && index % 3 != 0) ||
                       (index == emptyIndex - 3) || 
                       (index == emptyIndex + 3);
-
-    // Выводим в консоль для отладки
-    debugPrint("Нажата ячейка $index. Пустая ячейка: $emptyIndex. Можно двигать: $isAdjacent");
 
     if (isAdjacent) {
       setState(() {
@@ -97,12 +131,17 @@ class _GameImageScreenState extends State<GameImageScreen> {
         _pieces[emptyIndex] = temp;
       });
 
+      AppLogger.debug('GameImageScreen', 'Движение пазла', 'Передвинут кусочек');
+
       if (isSolved()) {
         _timer?.cancel();
         _isPlaying = false;
+        
+        AppLogger.info('GameImageScreen', 'Победа', 'Пазл собран! Время: $_formattedTime');
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const SuccessScreen()),
+          MaterialPageRoute(builder: (context) => const GameEndScreen()),
         );
       }
     }
@@ -125,7 +164,6 @@ class _GameImageScreenState extends State<GameImageScreen> {
           children: [
             AppTimer(time: _formattedTime),
             const SizedBox(height: 24),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -134,12 +172,10 @@ class _GameImageScreenState extends State<GameImageScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Игровое поле
             Expanded(
               child: Center(
                 child: AspectRatio(
-                  aspectRatio: 1, // Квадратное поле
+                  aspectRatio: 1, 
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: AppColors.primary, width: 2),
@@ -158,6 +194,7 @@ class _GameImageScreenState extends State<GameImageScreen> {
 
                               final int currentRow = index ~/ 3;
                               final int currentCol = index % 3;
+                              
                               final int imageRow = (value - 1) ~/ 3;
                               final int imageCol = (value - 1) % 3;
 
@@ -169,39 +206,40 @@ class _GameImageScreenState extends State<GameImageScreen> {
                                 child: GestureDetector(
                                   onTap: () => _onTileTap(index),
                                   child: Container(
-                                    margin: const EdgeInsets.all(2), // Отступ между плитками
+                                    margin: const EdgeInsets.all(1),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.1), // Фон, если нет картинки
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: AppColors.primary, width: 1),
+                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(7),
+                                      borderRadius: BorderRadius.circular(4),
                                       child: Stack(
                                         fit: StackFit.expand,
                                         children: [
-                                          // Пытаемся загрузить картинку
+                                          // 1. ЦИФРА (лежит на заднем фоне, видна всегда)
+                                          Container(
+                                            color: AppColors.primary.withValues(alpha: 0.1),
+                                            child: Center(
+                                              child: Text(
+                                                '$value',
+                                                style: AppTextStyles.title1ExtraBold.copyWith(
+                                                  color: AppColors.primary,
+                                                  fontSize: tileSize / 2.5,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          
+                                          // 2. КАРТИНКА (перекрывает цифру, если загрузилась)
                                           Transform.translate(
                                             offset: Offset(-imageCol * tileSize, -imageRow * tileSize),
                                             child: Image.asset(
-                                              'assets/puzzle.jpg',
+                                              'assets/images/puzzle.jpg',
                                               width: tileSize * 3,
                                               height: tileSize * 3,
                                               fit: BoxFit.cover,
-                                              // Если картинки нет, скрываем её
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return const SizedBox.shrink(); 
-                                              },
-                                            ),
-                                          ),
-                                          // Цифра (показывается всегда, но картинка перекрывает её, если загрузилась)
-                                          Center(
-                                            child: Text(
-                                              '$value',
-                                              style: AppTextStyles.title1ExtraBold.copyWith(
-                                                color: AppColors.primary,
-                                                fontSize: 32,
-                                              ),
+                                              // Если картинки нет - возвращаем пустоту, и мы увидим цифру под ней
+                                              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                                             ),
                                           ),
                                         ],
@@ -220,10 +258,10 @@ class _GameImageScreenState extends State<GameImageScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             AppButton(
               text: 'Surrender',
               onPressed: () {
+                AppLogger.info('GameImageScreen', 'Пользовательский ввод', 'Игрок сдался (Surrender)');
                 _timer?.cancel();
                 Navigator.pop(context); 
               },

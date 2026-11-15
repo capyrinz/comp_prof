@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'package:network_layer/network_layer.dart';
-
-import '../../data/auth_repository.dart';
+import 'package:network_layer/network_layer.dart'; // Импорт для логгера
 import 'landing_screen.dart';
-import '../../data/session_manager.dart';
 
+/// Класс отвечает за отображение экрана авторизации и обработку ввода данных пользователя.
+/// 
+/// Дата создания: 15-11-2026
+/// Автор создания: [Твой номер]
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,54 +16,39 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+  bool _isPasswordVisible = false; // Состояние для глазика
 
-  // Создаем клиент и репозиторий (пока с фейковым URL для теста)
-  final _authRepo = AuthRepository(
-    ApiClient(baseUrl: 'https://fake-api-imech.com'),
-  );
+  // 1. ЛОГИРУЕМ ОТКРЫТИЕ ЭКРАНА (Требование Модуля А)
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.info('LoginScreen', 'Жизненный цикл', 'Экран авторизации открыт (initState)');
+  }
 
-  void _showErrorNotification(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.error,
-        duration: const Duration(seconds: 5), // Требование: 5 секунд
-        action: SnackBarAction(
-          label: 'X', // Кнопка закрытия
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
+  // 2. ЛОГИРУЕМ ЗАКРЫТИЕ ЭКРАНА (Требование Модуля А)
+  @override
+  void dispose() {
+    AppLogger.info('LoginScreen', 'Жизненный цикл', 'Экран авторизации закрыт (dispose)');
+    super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // 3. ЛОГИРУЕМ НАЖАТИЕ КНОПКИ (Требование Модуля А)
+    AppLogger.info('LoginScreen', 'Пользовательский ввод', 'Нажата кнопка "Let\'s Combat!"');
+
+    setState(() { _isLoading = true; });
+    
+    // Имитация запроса к серверу (пока без реального бэкенда)
     await Future.delayed(const Duration(seconds: 1));
-
+    
     if (mounted) {
-      // СОХРАНЯЕМ СЕССИЮ
-      await SessionManager.saveLoginStatus(true);
-
       Navigator.pushReplacement(
-        context,
+        context, 
         MaterialPageRoute(builder: (context) => const LandingScreen()),
       );
     }
-    if (mounted)
-      setState(() {
-        _isLoading = false;
-      });
+    
+    if (mounted) setState(() { _isLoading = false; });
   }
 
   @override
@@ -75,35 +61,84 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ... (картинка и тексты остаются как были) ...
-              const SizedBox(
-                height: 200,
-                child: Center(child: Text('Картинка')),
-              ),
-              Text(
-                'Welcome Back!',
-                style: AppTextStyles.title2Semibold.copyWith(
-                  color: AppColors.primary,
+              // Легкая заглушка вместо тяжелой картинки
+              Center(
+                child: Container(
+                  height: 200, 
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1), 
+                    borderRadius: BorderRadius.circular(20)
+                  ),
+                  child: const Icon(Icons.sports_esports, size: 80, color: AppColors.primary),
                 ),
               ),
+              const SizedBox(height: 32),
+              
+              Text('Welcome Back!', style: AppTextStyles.title2Semibold.copyWith(color: AppColors.primary)),
+              const SizedBox(height: 8),
+              Text('Hi, kindly login to continue battle', style: AppTextStyles.captionRegular.copyWith(color: AppColors.black)),
               const SizedBox(height: 32),
 
               const AppInput(hintText: 'Email'),
               const SizedBox(height: 16),
-              const AppInput(hintText: 'Password', obscureText: true),
+              
+              // ПАРОЛЬ С ГЛАЗИКОМ
+              AppInput(
+                hintText: 'Password',
+                obscureText: !_isPasswordVisible,
+                suffixIcon: IconButton(
+                  icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off, color: AppColors.inputIcon),
+                  onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                ),
+              ),
+              
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text('Forget Password?', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.black)),
+                ),
+              ),
+              const SizedBox(height: 16),
 
+              _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : AppButton(text: "Let's Combat!", onPressed: _handleLogin),
+              
               const SizedBox(height: 32),
 
-              // Кнопка теперь показывает загрузку, если идет запрос
-              _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : AppButton(text: "Let's Combat!", onPressed: _handleLogin),
+              // Соцсети (легкие иконки)
+              Center(
+                child: Column(
+                  children: [
+                    Text('Connect With:', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(backgroundColor: AppColors.error, radius: 20, child: const Icon(Icons.g_mobiledata, color: Colors.white, size: 30)),
+                        const SizedBox(width: 16),
+                        CircleAvatar(backgroundColor: AppColors.accent, radius: 20, child: const Icon(Icons.facebook, color: Colors.white, size: 30)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
 
-              // ... (остальной код с соцсетями) ...
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Don't have an account? ", style: AppTextStyles.captionRegular),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Text('Create Account', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'success_screen.dart';
+import 'package:network_layer/network_layer.dart';
+import 'game_end_screen.dart';
 
 /// Экран игры Circle (Собери круги от большего к меньшему).
+/// 
+/// Дата создания: 15-11-2026
+/// Автор создания: [Твой номер]
 class GameCircleScreen extends StatefulWidget {
   const GameCircleScreen({super.key});
 
@@ -11,38 +15,71 @@ class GameCircleScreen extends StatefulWidget {
   State<GameCircleScreen> createState() => _GameCircleScreenState();
 }
 
-class _GameCircleScreenState extends State<GameCircleScreen> {
+// Добавляем WidgetsBindingObserver для отслеживания жизненного цикла приложения
+class _GameCircleScreenState extends State<GameCircleScreen> with WidgetsBindingObserver {
   int _seconds = 0;
   Timer? _timer;
   bool _isPlaying = false;
 
-  // Размеры кругов и их позиции (сгруппированы, чтобы не перекрывались)
   final List<Map<String, dynamic>> _circles = [
-    {'size': 120.0, 'align': const Alignment(-0.5, -0.6), 'number': 1}, // Самый большой
+    {'size': 120.0, 'align': const Alignment(-0.5, -0.6), 'number': 1},
     {'size': 90.0,  'align': const Alignment(0.6, -0.3),  'number': 2},
     {'size': 70.0,  'align': const Alignment(-0.4, 0.4),  'number': 3},
     {'size': 50.0,  'align': const Alignment(0.7, 0.6),   'number': 4},
-    {'size': 30.0,  'align': const Alignment(0.0, 0.0),   'number': 5}, // Самый маленький
+    {'size': 30.0,  'align': const Alignment(0.0, 0.0),   'number': 5}, 
   ];
   
-  // Список оставшихся номеров (какие круги еще не собраны)
   List<int> _remainingNumbers = [];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this); // Регистрируем наблюдателя
+    AppLogger.info('GameCircleScreen', 'Жизненный цикл', 'Игра Circle запущена (initState)');
     _startGame();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Удаляем наблюдателя
     _timer?.cancel();
+    AppLogger.info('GameCircleScreen', 'Жизненный цикл', 'Игра Circle закрыта (dispose)');
     super.dispose();
+  }
+
+  // НОВЫЙ МЕТОД: Отслеживаем сворачивание приложения (Модуль Г)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused && _isPlaying) {
+      // Игрок свернул приложение во время игры - засчитываем поражение
+      AppLogger.error('GameCircleScreen', 'Проигрыш', 'Игрок свернул приложение во время игры');
+      _timer?.cancel();
+      _isPlaying = false;
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Вы проиграли!'),
+            content: const Text('Нельзя сворачивать приложение во время боя.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Закрываем диалог
+                  Navigator.pop(context); // Выходим из игры назад
+                },
+                child: const Text('Выйти'),
+              )
+            ],
+          ),
+        );
+      }
+    }
   }
 
   void _startGame() {
     setState(() {
-      // Все круги на месте
       _remainingNumbers = [1, 2, 3, 4, 5];
     });
     _startTimer();
@@ -68,30 +105,33 @@ class _GameCircleScreenState extends State<GameCircleScreen> {
   void _onCircleTap(int number) {
     if (!_isPlaying) return;
 
-    // Находим самый маленький номер из оставшихся (1 - самый большой, 5 - самый маленький)
-    // Игрок должен нажимать 1, потом 2, потом 3...
     int expectedNumber = _remainingNumbers.reduce((a, b) => a < b ? a : b);
 
     if (number == expectedNumber) {
-      // Правильный выбор!
+      AppLogger.debug('GameCircleScreen', 'Движение', 'Собран правильный круг №$number');
+      
       setState(() {
         _remainingNumbers.remove(number);
       });
 
-      // Если собрали все круги
       if (_remainingNumbers.isEmpty) {
         _timer?.cancel();
         _isPlaying = false;
+        
+        AppLogger.info('GameCircleScreen', 'Победа', 'Все круги собраны! Время: $_formattedTime');
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const SuccessScreen()),
+          MaterialPageRoute(builder: (context) => const GameEndScreen()),
         );
       }
     } else {
-      // Ошибка! Штрафуем на 3 секунды
       setState(() {
         _seconds += 3;
       });
+      
+      AppLogger.error('GameCircleScreen', 'Ошибка', 'Игрок нажал не на тот круг (нужен $expectedNumber, нажат $number)');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Неверно! Нужен следующий по размеру круг. +3 сек штрафа'),
@@ -132,8 +172,6 @@ class _GameCircleScreenState extends State<GameCircleScreen> {
               ],
             ),
           ),
-
-          // Игровое поле
           Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -150,7 +188,6 @@ class _GameCircleScreenState extends State<GameCircleScreen> {
                     final double size = circle['size'];
                     final Alignment align = circle['align'];
 
-                    // Если круг уже собран, не отображаем его
                     if (!_remainingNumbers.contains(number)) {
                       return const SizedBox.shrink();
                     }
@@ -179,7 +216,7 @@ class _GameCircleScreenState extends State<GameCircleScreen> {
                               '$number',
                               style: AppTextStyles.title1ExtraBold.copyWith(
                                 color: AppColors.white,
-                                fontSize: size / 2.5, // Размер шрифта зависит от размера круга
+                                fontSize: size / 2.5,
                               ),
                             ),
                           ),
@@ -192,12 +229,12 @@ class _GameCircleScreenState extends State<GameCircleScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: AppButton(
               text: 'Surrender',
               onPressed: () {
+                AppLogger.info('GameCircleScreen', 'Пользовательский ввод', 'Игрок сдался (Surrender)');
                 _timer?.cancel();
                 Navigator.pop(context);
               },

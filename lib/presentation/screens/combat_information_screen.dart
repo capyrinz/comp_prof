@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-
+import 'package:network_layer/network_layer.dart'; // Импорт логгера
 import 'game_image_screen.dart';
 import 'game_circle_screen.dart';
 
-/// Экран с подробной информацией о выбранном бое (Combat Information).
-///
+/// Экран с подробной информацией о выбранном бое.
+/// 
 /// Дата создания: 15-11-2026
 /// Автор создания: [Твой номер]
-class CombatInformationScreen extends StatelessWidget {
-  const CombatInformationScreen({super.key});
+class CombatInformationScreen extends StatefulWidget {
+  final String category; 
+
+  const CombatInformationScreen({super.key, this.category = 'Image'});
+
+  @override
+  State<CombatInformationScreen> createState() => _CombatInformationScreenState();
+}
+
+class _CombatInformationScreenState extends State<CombatInformationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.info('CombatInformationScreen', 'Жизненный цикл', 'Экран Combat Information открыт (категория: ${widget.category})');
+  }
+
+  @override
+  void dispose() {
+    AppLogger.info('CombatInformationScreen', 'Жизненный цикл', 'Экран Combat Information закрыт (dispose)');
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,20 +38,13 @@ class CombatInformationScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.primary),
-        title: Text(
-          'Combat\nInformation',
-          style: AppTextStyles.title3Semibold.copyWith(
-            color: AppColors.primary,
-            height: 1.1,
-          ),
-        ),
+        title: Text('Combat\nInformation', style: AppTextStyles.title3Semibold.copyWith(color: AppColors.primary, height: 1.1)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Карточка с игроками
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -44,16 +56,8 @@ class CombatInformationScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'NFTs (Evolve 2)',
-                        style: AppTextStyles.captionSemibold,
-                      ),
-                      Text(
-                        '\$4000',
-                        style: AppTextStyles.captionSemibold.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      Text('NFTs (Evolve 2)', style: AppTextStyles.captionSemibold),
+                      Text('\$4000', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -61,12 +65,7 @@ class CombatInformationScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildPlayerAvatar('Guy Hawkins', true),
-                      Text(
-                        'VS',
-                        style: AppTextStyles.title2ExtraBold.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      Text('VS', style: AppTextStyles.title2ExtraBold.copyWith(color: AppColors.primary)),
                       _buildPlayerAvatar('Travis Black', false),
                     ],
                   ),
@@ -74,43 +73,22 @@ class CombatInformationScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Правила игры
             Text(
-              'If players haven\'t join / need 6 valid gamers to join me on this quest playing NFT (Evolve 2) you will be rewarded depending on position. Let\'s win some money. Are you ready for this challenge? let\'s really',
-              style: AppTextStyles.captionRegular.copyWith(
-                color: AppColors.description,
-              ),
+              'Hi players, here is the quest. I need 6 valid gamers to join me on this quest playing NFTs (Evolve 2) you will be rewarded according to the positions. lets do this. Ready for the challenge? lets really',
+              style: AppTextStyles.captionRegular.copyWith(color: AppColors.description),
             ),
             const SizedBox(height: 24),
-
-            // Категория
-            Text(
-              'Category',
-              style: AppTextStyles.captionSemibold.copyWith(
-                color: AppColors.primary,
-              ),
-            ),
+            Text('Category', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.inputBg,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text('Image', style: AppTextStyles.captionRegular),
+              decoration: BoxDecoration(color: AppColors.inputBg, borderRadius: BorderRadius.circular(20)),
+              child: Text(widget.category, style: AppTextStyles.captionRegular),
             ),
             const SizedBox(height: 24),
-
-            // Призовой фонд
             Row(
               children: [
-                Text(
-                  'Winning\nPrice',
-                  style: AppTextStyles.captionSemibold.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
+                Text('Winning\nPrice', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
                 const SizedBox(width: 24),
                 Text('\$2000', style: AppTextStyles.textMedium),
                 const SizedBox(width: 24),
@@ -120,8 +98,6 @@ class CombatInformationScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-
-            // Временной интервал
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -133,18 +109,9 @@ class CombatInformationScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.timer,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
+                      const Icon(Icons.timer, size: 16, color: AppColors.primary),
                       const SizedBox(width: 8),
-                      Text(
-                        'TIME INTERVAL',
-                        style: AppTextStyles.captionSemibold.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      Text('TIME INTERVAL', style: AppTextStyles.captionSemibold.copyWith(color: AppColors.primary)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -155,26 +122,16 @@ class CombatInformationScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-
-            // Кнопка присоединиться
-                        AppButton(
+            AppButton(
               text: 'Join Combat!',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameImageScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16), // Отступ
-            // ВРЕМЕННАЯ КНОПКА ДЛЯ ТЕСТА ИГРЫ CIRCLE
-            AppButton(
-              text: 'Играть в Circle (Тест)',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameCircleScreen()),
-                );
+                AppLogger.info('CombatInformationScreen', 'Пользовательский ввод', 'Нажата кнопка "Join Combat!"');
+                
+                if (widget.category == 'Circle') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const GameCircleScreen()));
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const GameImageScreen()));
+                }
               },
             ),
           ],
@@ -201,12 +158,7 @@ class CombatInformationScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.caption2Regular.copyWith(
-            color: AppColors.primary,
-          ),
-        ),
+        Text(label, style: AppTextStyles.caption2Regular.copyWith(color: AppColors.primary)),
         Text(date, style: AppTextStyles.caption2Regular),
         Text(time, style: AppTextStyles.caption2Regular),
       ],
