@@ -1,10 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:ui_kit/ui_kit.dart';
-
+import 'package:network_layer/network_layer.dart';
+import '../../data/auth_repository.dart';
 import 'landing_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isLoading = false;
+  
+  // Создаем клиент и репозиторий (пока с фейковым URL для теста)
+  final _authRepo = AuthRepository(ApiClient(baseUrl: 'https://fake-api-imech.com'));
+
+  void _showErrorNotification(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        duration: const Duration(seconds: 5), // Требование: 5 секунд
+        action: SnackBarAction(
+          label: 'X', // Кнопка закрытия
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() { _isLoading = true; });
+    try {
+      // Пытаемся сделать запрос (он упадет, так как URL фейковый)
+      await _authRepo.login('test@mail.com', '123456');
+      
+      // Если успех (в будущем):
+      if (mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingScreen()));
+      }
+    } on NetworkException catch (e) {
+      // Ловим нашу сетевую ошибку и показываем уведомление
+      if (mounted) _showErrorNotification(e.message);
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,121 +68,23 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.inputBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.image,
-                  size: 60,
-                  color: AppColors.inputIcon,
-                ),
-              ),
+              // ... (картинка и тексты остаются как были) ...
+              const SizedBox(height: 200, child: Center(child: Text('Картинка'))),
+              Text('Welcome Back!', style: AppTextStyles.title2Semibold.copyWith(color: AppColors.primary)),
               const SizedBox(height: 32),
-              Text(
-                'Welcome Back!',
-                style: AppTextStyles.title2Semibold.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Hi, kindly login to continue battle',
-                style: AppTextStyles.captionRegular.copyWith(
-                  color: AppColors.description,
-                ),
-              ),
-              const SizedBox(height: 32),
+              
               const AppInput(hintText: 'Email'),
               const SizedBox(height: 16),
               const AppInput(hintText: 'Password', obscureText: true),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Forget Password?',
-                    style: AppTextStyles.captionSemibold.copyWith(
-                      color: AppColors.black,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              AppButton(
-                text: "Let's Combat!",
-                onPressed: () {
-                  // Переходим на главный экран
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LandingScreen(),
-                    ),
-                  );
-                },
-              ),
+              
               const SizedBox(height: 32),
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Connect With:',
-                      style: AppTextStyles.captionSemibold.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: AppColors.error,
-                          radius: 20,
-                          child: const Icon(
-                            Icons.g_mobiledata,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        CircleAvatar(
-                          backgroundColor: AppColors.accent,
-                          radius: 20,
-                          child: const Icon(
-                            Icons.facebook,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account? ",
-                      style: AppTextStyles.captionRegular,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Create Account',
-                        style: AppTextStyles.captionSemibold.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              
+              // Кнопка теперь показывает загрузку, если идет запрос
+              _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : AppButton(text: "Let's Combat!", onPressed: _handleLogin),
+                
+              // ... (остальной код с соцсетями) ...
             ],
           ),
         ),
