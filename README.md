@@ -1,17 +1,150 @@
-# prof2
+1. Про ветки Git (почему мы не делали их сегодня)
 
-A new Flutter project.
+Сегодня мы работали в ветке main, чтобы не тратить твое время на постоянные переключения (пока код нестабилен, лучше все делать в одном месте). Но на конкурсе делать так НЕЛЬЗЯ. По ТЗ (Модуль Г) эксперты будут смотреть на историю коммитов.
 
-## Getting Started
+Как делать на конкурсе:
 
-This project is a starting point for a Flutter application.
+    В начале Спринта 1 создаешь ветку: git checkout -b sprint-1.
 
-A few resources to get you started if this is your first Flutter project:
+    Работаешь, делаешь коммиты.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+    В конце Спринта пушишь: git push origin sprint-1.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+    Заходишь на GitHub, нажимаешь "Compare & Pull Request", создаешь PR и делаешь Merge в main.
+
+    Удаляешь ветку.
+
+    Для Спринта 2 повторяешь: git checkout -b sprint-2 от обновленного main и т.д.
+
+🔗 2. Про подключение библиотек (Локально vs Git)
+
+Ты абсолютно права. Сейчас у нас в prof2/pubspec.yaml написано:
+yaml
+
+ui_kit:
+  path: ../ui_kit
+
+Это локальное подключение. Оно удобно для разработки (изменения видны моментально).
+
+Но в ТЗ (файл 04, стр. 44) сказано: "Библиотека существует как самостоятельный проект с собственной системой контроля версий".
+Как делать на конкурсе (и как сдавать):
+
+    Заливаешь ui_kit и network_layer в отдельные репозитории на GitHub.
+
+    В prof2/pubspec.yaml меняешь подключение на Git-ссылки:
+
+yaml
+
+dependencies:
+  ui_kit:
+    git:
+      url: https://github.com/твой_ник/ui_kit.git
+      ref: main
+  network_layer:
+    git:
+      url: https://github.com/твой_ник/network_layer.git
+      ref: main
+
+    Делаешь flutter pub get. Теперь твое приложение будет скачивать эти библиотеки прямо из интернета, как настоящие сторонние пакеты. Эксперты это оценят.
+
+📂 3. Полная структура и логика работы проекта (Markdown)
+
+Вот полный разбор того, что мы с тобой построили. Можешь сохранить это как шпаргалку для презентации или защиты проекта.
+📱 Архитектура проекта GAMETIME (Flutter)
+
+Проект разбит на 3 независимых репозитория (пакета), что соответствует принципам чистой архитектуры (Clean Architecture) и требованиям ТЗ.
+text
+
+📦 Корневая папка (C:/)
+ ┣ 📂 prof2/            # Основное мобильное приложение
+ ┣ 📂 ui_kit/           # Библиотека дизайна (UI-кит)
+ ┗ 📂 network_layer/    # Библиотека сети и тестов
+
+1. 📦 Библиотека ui_kit (Дизайн-система)
+
+Отвечает за визуальную часть. Не знает ничего о логике приложения.
+
+    lib/src/theme/app_colors.dart: Палитра цветов (градиенты, розовый, черный, серый). Единый источник истины (DRY).
+
+    lib/src/theme/app_text_styles.dart: Типографика (шрифт Public Sans, размеры Title, Caption и т.д.).
+
+    lib/src/widgets/: Набор кастомных виджетов:
+
+        app_button.dart: Кнопка с состояниями (Enabled, Disabled, Loading) и градиентом.
+
+        app_input.dart: Поле ввода с валидацией и поддержкой иконки (для «глазика» пароля).
+
+        app_card.dart: Карточка для главного экрана (с иконкой и градиентом).
+
+        app_bottom_bar.dart: Нижняя панель с центральной круглой кнопкой.
+
+        app_timer.dart, app_checkbox.dart, app_select.dart, app_pagination.dart: Остальные компоненты по ТЗ.
+
+2. 📦 Библиотека network_layer (Работа с API)
+
+Изолированный модуль для работы с сетью. Приложение зависит от абстракций (SOLID), а не от конкретной реализации.
+
+    lib/src/app_logger.dart: Централизованный логгер (DEBUG, INFO, ERROR) с форматом [Тег]: Событие — Детали.
+
+    lib/src/api_client.dart:
+
+        IApiClient — интерфейс (абстракция).
+
+        ApiClient — реализация запросов GET/POST с логированием и обработкой ошибок.
+
+    lib/src/network_exceptions.dart: Кастомные ошибки (например, NetworkException).
+
+    test/network_layer_test.dart: 11 юнит-тестов с использованием MockClient для проверки всех запросов из ТЗ.
+
+3. 📱 Приложение prof2
+
+Использует библиотеки ui_kit и network_layer.
+📂 Слой lib/data/ (Работа с данными)
+
+    session_manager.dart: Управление сессией через SharedPreferences (автовход, сохранение последнего экрана, выход).
+
+    notification_service.dart: Настройка локальных уведомлений (напоминание за 1 час до игры).
+
+    game_repository.dart: Репозиторий, связывающий сетевой слой и приложение (содержит методы для всех 11 запросов).
+
+📂 Слой lib/domain/ (Бизнес-сущности)
+
+    user_model.dart: Модели данных (парсинг JSON).
+
+📂 Слой lib/presentation/ (UI и логика экранов)
+
+    screens/:
+
+        splash_screen.dart: Заставка (проверка сессии и переход на нужный экран).
+
+        onboarding_screen.dart: 3 экрана свайпов с пагинацией.
+
+        login_screen.dart и registration_screen.dart: Авторизация с валидацией Email и «глазиком».
+
+        landing_screen.dart: Главный экран с карточками и нижней панелью.
+
+        schedule_game_screen.dart: Создание игры (системный календарь, время, уведомления).
+
+        discover_combats_screen.dart: Список игр и игроков.
+
+        combat_information_screen.dart: Детали боя с переходом в нужную игру.
+
+        game_image_screen.dart: Игра-пазл (пятнашки) со сдвигом кусочков.
+
+        game_circle_screen.dart: Игра на внимательность (круги от 1 до 5).
+
+        game_end_screen.dart: Экран победы.
+
+        player_information_screen.dart: Профиль с доступом к камере/галерее.
+
+        legal_screen.dart: Текст политики конфиденциальности.
+
+    widgets/:
+
+        error_snackbar.dart: Красное уведомление об ошибке на 5 секунд.
+
+        side_menu.dart: Боковое меню (Drawer).
+
+📂 Главные файлы
+
+    main.dart: Точка входа. Инициализирует приложение и запускает SplashScreen.
